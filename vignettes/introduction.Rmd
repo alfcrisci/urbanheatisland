@@ -1,0 +1,122 @@
+---
+title: "Introduction to urbanheatisland"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to urbanheatisland}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", eval = FALSE)
+```
+
+## Overview
+
+`urbanheatisland` supports urban heat island / biometeorology workflows that
+combine:
+
+1. **Land Surface Temperature (LST)**, from MODIS (via the NASA AppEEARS
+   API) or from local files you already have.
+2. **Interpolated air temperature**, from station observations, using the
+   same family of methods (IDW, kriging, thin-plate spline, TIN, nearest
+   neighbour) used in the companion `R.IBE.airqino` package.
+3. **Urban heat island metrics and downscaling**, combining the two.
+4. **Local spatial hotspot analysis** (Getis-Ord Gi\*, Local Moran's I) on
+   any of the resulting rasters.
+
+## 1. Getting LST
+
+### From NASA AppEEARS (MODIS MOD11A2, 8-day 1km composite)
+
+```{r}
+library(urbanheatisland)
+
+Sys.setenv(EARTHDATA_USER = "your_username")
+Sys.setenv(EARTHDATA_PASS = "your_password")
+
+lst <- get_modis_lst(
+  aoi        = my_aoi_polygon,   # sf polygon, EPSG:4326
+  start_date = "06-01-2026",
+  end_date   = "08-31-2026"
+)
+```
+
+This logs in, submits an area task, polls until it's done, downloads the
+GeoTIFFs, applies the MODIS scale factor and Kelvin-to-Celsius conversion,
+and masks low-quality pixels using the QC layer — all in one call. Each
+step is also available individually (`lst_appeears_login()`,
+`lst_appeears_submit_task()`, `lst_appeears_wait()`,
+`lst_appeears_download()`) if you need more control, e.g. to submit several
+tasks before waiting on any of them.
+
+### From local files
+
+```{r}
+lst <- read_lst_local(
+  "MOD11A2.A2026153.h18v04.061.LST_Day_1km.tif",
+  qc_path = "MOD11A2.A2026153.h18v04.061.QC_Day.tif"
+)
+```
+
+`decode_modis_qc()` exposes the QC-bit decoding directly if you want to
+build a custom mask, and `mosaic_lst()` / `composite_lst()` help combine
+multiple tiles or dates (e.g. cloud-gap filling across an 8-day window).
+
+## 2. Interpolating air temperature
+
+```{r}
+air_temp <- interpolate_airtemp(
+  stations   = station_points,   # sf POINT, with a temperature column
+  value_col  = "temp_c",
+  template   = lst,              # defines the output grid
+  method     = "kriging"
+)
+```
+
+If you're not sure which method suits your station network, compare a few
+with leave-one-out cross-validation:
+
+```{r}
+cv_interpolate_airtemp(station_points, "temp_c", template = lst,
+                        methods = c("idw", "kriging", "nn"))
+```
+
+## 3. Urban heat island intensity and downscaling
+
+```{r}
+uhi <- compute_uhi(lst, rural_ref = rural_reference_polygon)
+
+# Downscale coarser air temperature to LST's finer resolution
+air_temp_fine <- downscale_airtemp(air_temp, lst, method = "regression")
+
+# Or with regression-kriging of the residuals (uses station data directly)
+air_temp_fine_rk <- downscale_airtemp(
+  air_temp, lst,
+  stations = station_points, value_col = "temp_c",
+  method = "rk"
+)
+```
+
+## 4. Hotspot analysis
+
+```{r}
+gi <- gi_star_raster(lst, d = 1500)   # ~1.5 km neighbourhood
+hotspots <- classify_hotspots(gi, apply_fdr = TRUE)
+plot_hotspots(hotspots)
+
+lisa <- local_moran_raster(lst, d = 1500)  # HH / LL / HL / LH clusters
+```
+
+`gi_star_raster()` automatically switches from an exact `spdep`-based
+computation to a faster `terra::focal`-based approximation above
+`max_cells_direct` valid cells (default 200,000) — tune this for large
+rasters.
+
+## A note on false discovery rate
+
+With thousands of raster cells being tested simultaneously,
+`classify_hotspots(apply_fdr = TRUE)` (the default) applies a
+Benjamini-Hochberg FDR correction to the Gi\* p-values before classifying
+hot/cold spots, reducing the chance of spurious clusters compared to raw
+z-score cutoffs.
