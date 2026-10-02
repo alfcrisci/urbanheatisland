@@ -20,9 +20,11 @@ island workflows (e.g. MIRifICUS).
 
 ```r
 # Core dependencies (available on CRAN)
+
 install.packages(c("terra", "sf", "gstat", "spdep", "jsonlite"))
 
 # Optional, enable extra features:
+
 install.packages(c("httr2", "fields", "randomForest", "interp", "geojsonsf"))
 
 # Then install this package from source
