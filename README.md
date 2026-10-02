@@ -96,19 +96,9 @@ computation (accurate, used for ≤ 200,000 valid cells by default) and a
 faster `terra::focal`-based circular-window approximation for larger
 rasters. Tune the threshold with `max_cells_direct`.
 
-## Testing
-
-```r
-# From the package source directory
-testthat::test_dir("tests/testthat", package = "urbanheatisland")
-```
-
-All 12 unit tests pass against `terra`, `sf`, `spdep`, and `gstat` (tested
-against terra 1.7.65, sf 1.0-15, spdep 1.3-1, gstat 2.1-1 on R 4.3.3).
 
 ## Status
-
-v0.1.0 — functional core (LST acquisition/processing, interpolation, UHI,
+v0.12 - functional core (LST acquisition/processing, interpolation, UHI,
 hotspot analysis) with a passing unit test suite. `man/*.Rd` pages are not
 yet generated — run `roxygen2::roxygenise()` after editing the roxygen
 comments in `R/*.R` to build them, or use `devtools::document()`.
