@@ -1,0 +1,44 @@
+Package: urbanheatisland
+Type: Package
+Title: Land Surface Temperature, Interpolated Air Temperature, and Spatial Hotspot Analysis
+Version: 0.12.0
+Authors@R: person("Alf", role = c("aut", "cre"), email = "alf@ibe.cnr.it")
+Description: Tools to acquire and process MODIS Land Surface Temperature (LST) data
+    (via the NASA AppEEARS API or local files), interpolate ground-station air
+    temperature observations to continuous raster surfaces (IDW, Kriging, TPS,
+    TIN, nearest-neighbour), derive urban heat island (UHI) metrics by combining
+    LST and interpolated air temperature, downscale air temperature using LST as
+    a covariate, and run local spatial hotspot analysis (Getis-Ord Gi*, Local
+    Moran's I) on raster surfaces. Designed for urban heat island and
+    biometeorological workflows (e.g. MIRifICUS).
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.3.1
+Depends: R (>= 4.1.0)
+Imports:
+    terra (>= 1.7.0),
+    sf,
+    gstat,
+    spdep,
+    jsonlite,
+    stats
+Suggests:
+    testthat (>= 3.0.0),
+    ggplot2,
+    knitr,
+    rmarkdown,
+    randomForest,
+    fields,
+    httr2,
+    interp,
+    geojsonsf,
+    aws.s3,
+    osmdata,
+    landscapemetrics,
+    rstac,
+    R.IBE.airqino
+Config/testthat/edition: 3
+VignetteBuilder: knitr
+URL: https://github.com/cnr-ibe/urbanheatisland
+BugReports: https://github.com/cnr-ibe/urbanheatisland/issues
