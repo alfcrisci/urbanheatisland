@@ -26,7 +26,10 @@ install.packages(c("terra", "sf", "gstat", "spdep", "jsonlite"))
 install.packages(c("httr2", "fields", "randomForest", "interp", "geojsonsf"))
 
 # Then install this package from source
-install.packages("urbanheatisland_0.6.1.tar.gz", repos = NULL, type = "source")
+remotes::install_github("alfcrisci/urbanheatisland")
+
+devtools::install_github("alfcrisci/urbanheatisland")
+
 ```
 
 `httr2` is required only for the AppEEARS download functions (`get_modis_lst()`
