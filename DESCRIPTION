@@ -40,5 +40,5 @@ Suggests:
     R.IBE.airqino
 Config/testthat/edition: 3
 VignetteBuilder: knitr
-URL: https://github.com/cnr-ibe/urbanheatisland
-BugReports: https://github.com/cnr-ibe/urbanheatisland/issues
+URL: https://github.com/alfcrisci/urbanheatisland
+BugReports: https://github.com/alfcrisci/urbanheatisland/issues
